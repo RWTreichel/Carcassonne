@@ -1,2 +1,2 @@
-# Carcassone
-A web-based implementation of Carcassone. For fun.
+# Carcassonne
+A web-based implementation of Carcassonne. For fun.
