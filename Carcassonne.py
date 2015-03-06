@@ -10,17 +10,11 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 #Setup board
-def SetupBoard():
-    board = pnd.DataFrame(columns=['TILE_ID','TILE_X','TILE_Y','TILE_CONFIG'])
-    return(board)
-    
-
-#Import tile setup from csv. Create dataframe with fresh status.
-def SetupTiles():
+def StartGame():
+    board = pnd.DataFrame(columns=['TILE_ID','TILE_X','TILE_Y','TILE_CONFIG','PLAYER_ID'])
     tiles = pnd.read_csv('tiles_start.csv',header=0) #import csv starter file
     tiles.insert(3,'STATUS',1) #insert status column in tiles dataframe
-    return(tiles)
-
+    return(board, tiles)
 
 #Choose random tile from pile and update status column for chosen tile
 def GetTile(tiles):
@@ -35,29 +29,15 @@ def GetTile(tiles):
     print(tiles.values[tile_inhand])
     return(tiles, tile_inhand)
     
-
 #Update Board
-def PlaceTile(tiles, tile_inhand, board, tile_x, tile_y, tile_config):
+def PlaceTile(tiles, tile_inhand, board, tile_x, tile_y, tile_config, player):
     placement = pnd.DataFrame(columns=['TILE_ID','TILE_X','TILE_Y','TILE_CONFIG'], index=[0])
     placement['TILE_ID'] = tile_inhand
     placement['TILE_X'] = tile_x
     placement['TILE_Y'] = tile_y
     placement['TILE_CONFIG'] = tile_config
+    placement['PLAYER_ID'] = player
     board = board.append(placement, ignore_index=True)
     print(board)
-    return(tiles, board)
+    return(board, tiles)
 
-
-
-
-#First turn simulation
-b1 = SetupBoard()
-t1 = SetupTiles()
-g1 = GetTile(t1)
-p1 = PlaceTile(g1[0],g1[1],b1,0,0,'CCRR')
-#Second turn
-g2 = GetTile(p1[0])
-p2 = PlaceTile(g2[0],g2[1],p1[1],1,0,'RFCF')  
-#Third turn
-g3 = GetTile(p2[0])
-p3 = PlaceTile(g3[0],g3[1],p2[1],2,0,'FFRF')
