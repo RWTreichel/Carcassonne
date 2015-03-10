@@ -1,4 +1,5 @@
 TILE_TYPE,TILE_CONFIG,FILENAME
+START,CRFR,D.png
 A,FFRF,A.png
 A,FFRF,A.png
 B,FFFF,B.png
@@ -6,7 +7,6 @@ B,FFFF,B.png
 B,FFFF,B.png
 B,FFFF,B.png
 C,CCCC,C.png
-D,CRFR,D.png
 D,CRFR,D.png
 D,CRFR,D.png
 D,CRFR,D.png
