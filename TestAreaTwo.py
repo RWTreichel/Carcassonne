@@ -2,51 +2,29 @@
 Testing area for Carcassonne.py
 """
 import Carcassonne as carc
-import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 
-turn = 0
-print("Turn " + str(turn))
+#Initiate Game
 start = carc.StartGame()
 board = start[0]
 tiles = start[1]
-path = 'C:/Users/Justin/Box Sync/Python/Carcassonne/Graphics/Tiles/D.png' #define image path for chosen tile
-#img = mpimg.imread(path) #define image object
-#imgplot = plt.imshow(img) #show image
-plt.axis('off')
 
-turn = 1  
-while turn < 5:
-    print("Turn " + str(turn))
-    pick = carc.GetTile(tiles)
-    tiles = pick[0]
-    tile_inhand = pick[1]
-    path = 'C:/Users/Justin/Box Sync/Python/Carcassonne/Graphics/Tiles/' + tiles['FILENAME'][tile_inhand] #define image path for chosen tile   
-
-    print(tiles[tiles.index==tile_inhand])
-    rotate = input('Rotate Degrees (0, 90, 180, or 270):')
-    if rotate == '0':
-        new_config = tiles['TILE_CONFIG'][tile_inhand]
-        print(new_config)
-
-    elif rotate == '90':
-        new_config = tiles['TILE_CONFIG'][tile_inhand][3] + tiles['TILE_CONFIG'][tile_inhand][0] + tiles['TILE_CONFIG'][tile_inhand][1] + tiles['TILE_CONFIG'][tile_inhand][2]
-        print(new_config)
-
-    elif rotate == '180':
-        new_config = tiles['TILE_CONFIG'][tile_inhand][2] + tiles['TILE_CONFIG'][tile_inhand][3] + tiles['TILE_CONFIG'][tile_inhand][0] + tiles['TILE_CONFIG'][tile_inhand][1]
-        print(new_config)
-
-    elif rotate == '270':
-        new_config = tiles['TILE_CONFIG'][tile_inhand][1] + tiles['TILE_CONFIG'][tile_inhand][2] + tiles['TILE_CONFIG'][tile_inhand][3] + tiles['TILE_CONFIG'][tile_inhand][0]
-        print(new_config)
-
-    else:
-        print('Please Enter 0, 90, 180, or 270')
+#Start Loop
+turn = 1
+while turn < 3:
+    get_tile = carc.GetTile(tiles)
+    tiles = get_tile[0]
+    tile_inhand = get_tile[1]
+    print(tiles.values[tile_inhand])
     
-
+    place_x = int(input('Enter X position: '))
+    place_y = int(input('Enter Y position: '))
+    rotate = str(input('Enter rotation: '))
+    player = str(input('Enter player ID: '))
+    meeple = str(input('Enter meeple option: '))
+    place = carc.PlaceTile(tiles, tile_inhand, board, place_x, place_y, rotate, player, meeple)
+    board = place
+    print(place,'\n',board)
+    
     turn = turn + 1
-
-    
-
-

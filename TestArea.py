@@ -9,22 +9,19 @@ import matplotlib.image as mpimg
 b1 = carc.StartGame()
 
 g1 = carc.GetTile(b1[1])
+print(g1)
 p1 = carc.PlaceTile(g1[0],g1[1],b1[0],int(input('Enter X location: ')),int(input('Enter Y location: ')),input('Enter Rotate (0, 90, 180, or 270): '),1)
+print(p1)
 #Second turn
 g2 = carc.GetTile(g1[0])
+print(g2)
 p2 = carc.PlaceTile(g2[0],g2[1],p1,int(input('Enter X location: ')),int(input('Enter Y location: ')),input('Enter Rotate (0, 90, 180, or 270): '),2)  
+print(p2)
 #Third turn
 g3 = carc.GetTile(g2[0])
+print(g3)
 p3 = carc.PlaceTile(g3[0],g3[1],p2,int(input('Enter X location: ')),int(input('Enter Y location: ')),input('Enter Rotate (0, 90, 180, or 270): '),3)
-#Fourth turn
-g4 = carc.GetTile(g3[0])
-p4 = carc.PlaceTile(g4[0],g4[1],p3,int(input('Enter X location: ')),int(input('Enter Y location: ')),input('Enter Rotate (0, 90, 180, or 270): '),4)
-#Fifth turn
-g5 = carc.GetTile(g4[0])
-p5 = carc.PlaceTile(g5[0],g5[1],p4,int(input('Enter X location: ')),int(input('Enter Y location: ')),input('Enter Rotate (0, 90, 180, or 270): '),1)
-#Sixth turn
-g6 = carc.GetTile(g5[0])
-p6 = carc.PlaceTile(g6[0],g6[1],p5,int(input('Enter X location: ')),int(input('Enter Y location: ')),input('Enter Rotate (0, 90, 180, or 270): '),2)
+print(p3)
 
 """
 
