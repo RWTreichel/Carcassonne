@@ -13,7 +13,7 @@ import pandas as pnd
 # ---------------------------------------------------------------------- 
 def StartGame():
     #Setup Board
-    start_append = pnd.DataFrame({'TILE_ID':'0','TILE_X':0,'TILE_Y':0,'TILE_CONFIG':'CRFR','PLAYER_ID':'START','MEEPLE':'0'}, index=[0])
+    start_append = pnd.DataFrame({'TILE_ID':'0','TILE_X':0,'TILE_Y':0,'TILE_CONFIG':'CCCFRFFFFFRF','PLAYER_ID':'START','MEEPLE':'0'}, index=[0])
     board = pnd.DataFrame(columns=['TILE_ID','TILE_X','TILE_Y','TILE_CONFIG','PLAYER_ID','MEEPLE'])
     board = board.append(start_append, ignore_index=True) #add starting tile
     #Setup Tiles    
@@ -22,6 +22,8 @@ def StartGame():
     status = np.array(tiles['STATUS']) #create status array from tiles
     status[0] = 0 #set status=0 for starting tile
     tiles['STATUS'] = status #update status column of tiles dataframe
+    #Convert data to json
+    #DataFrame.to_json(path_or_buf=None, orient=None, date_format='epoch', double_precision=10, force_ascii=True, date_unit='ms', default_handler=None)
     return(board, tiles)
 
 # ----------------------------------------------------------------------        
@@ -34,6 +36,8 @@ def GetTile(tiles):
     status = np.array(tiles['STATUS']) #create status array from tiles
     status[tile_inhand] = 0 #set status=0 for randomly chosen tile
     tiles['STATUS'] = status #update status column of tiles dataframe   
+    #Convert data to json
+    #DataFrame.to_json(path_or_buf=None, orient=None, date_format='epoch', double_precision=10, force_ascii=True, date_unit='ms', default_handler=None)
     return(tiles, tile_inhand)
     
 # ----------------------------------------------------------------------        
@@ -52,16 +56,16 @@ def PlaceTile(tiles, tile_inhand, board, tileX, tileY, rotate, player, meeple):
         new_config = tiles['TILE_CONFIG'][tile_inhand]
         placement['TILE_CONFIG'] = new_config
     elif rotate == '90':
-        new_config = tiles['TILE_CONFIG'][tile_inhand][3] + tiles['TILE_CONFIG'][tile_inhand][0] +\
-        tiles['TILE_CONFIG'][tile_inhand][1] + tiles['TILE_CONFIG'][tile_inhand][2]
+        new_config = tiles['TILE_CONFIG'][tile_inhand][9:12] + tiles['TILE_CONFIG'][tile_inhand][0:3] +\
+        tiles['TILE_CONFIG'][tile_inhand][3:6] + tiles['TILE_CONFIG'][tile_inhand][6:9]
         placement['TILE_CONFIG'] = new_config
     elif rotate == '180':
-        new_config = tiles['TILE_CONFIG'][tile_inhand][2] + tiles['TILE_CONFIG'][tile_inhand][3] + \
-        tiles['TILE_CONFIG'][tile_inhand][0] + tiles['TILE_CONFIG'][tile_inhand][1]
+        new_config = tiles['TILE_CONFIG'][tile_inhand][6:9] + tiles['TILE_CONFIG'][tile_inhand][9:12] + \
+        tiles['TILE_CONFIG'][tile_inhand][0:3] + tiles['TILE_CONFIG'][tile_inhand][3:6]
         placement['TILE_CONFIG'] = new_config
     elif rotate == '270':
-        new_config = tiles['TILE_CONFIG'][tile_inhand][1] + tiles['TILE_CONFIG'][tile_inhand][2] + \
-        tiles['TILE_CONFIG'][tile_inhand][3] + tiles['TILE_CONFIG'][tile_inhand][0]
+        new_config = tiles['TILE_CONFIG'][tile_inhand][3:6] + tiles['TILE_CONFIG'][tile_inhand][6:9] + \
+        tiles['TILE_CONFIG'][tile_inhand][9:12] + tiles['TILE_CONFIG'][tile_inhand][0:3]
         placement['TILE_CONFIG'] = new_config
     else: 
         error_msg = 'Invalid rotate'
@@ -74,17 +78,28 @@ def PlaceTile(tiles, tile_inhand, board, tileX, tileY, rotate, player, meeple):
     check_right = board.query('TILE_X == (@tileX+1) & TILE_Y == @tileY')
     check_bottom = board.query('TILE_X == @tileX & TILE_Y == (@tileY-1)')
     check_left = board.query('TILE_X == (@tileX-1) & TILE_Y == @tileY')
+    #"""
+    print('center: ',str(check_center['TILE_CONFIG']))
+    print('top: ',str(check_top['TILE_CONFIG']))
+    print('right: ',str(check_right['TILE_CONFIG']))       #For troubleshooting
+    print('bottom: ',str(check_bottom['TILE_CONFIG']))
+    print('left: ',str(check_left['TILE_CONFIG']))
+    #"""
     #Update board if all checks pass
     if check_center.empty: #check if spot is already taken
         if (check_top.empty and check_right.empty and check_bottom.empty and check_left.empty): #check if next to existing tile
             error_msg = 'Not next to existing tile'
             return(error_msg, board)
         else:
-            if (check_top.empty or str(check_top['TILE_CONFIG'])[7]==new_config[0]) & \
-            (check_right.empty or str(check_right['TILE_CONFIG'])[8]==new_config[1]) & \
-            (check_bottom.empty or str(check_bottom['TILE_CONFIG'])[5]==new_config[2]) & \
-            (check_left.empty or str(check_left['TILE_CONFIG'])[6]==new_config[3]):        
+            if (check_top.empty or str(check_top['TILE_CONFIG'])[12]==new_config[1]) & \
+            (check_right.empty or str(check_right['TILE_CONFIG'])[15]==new_config[4]) & \
+            (check_bottom.empty or str(check_bottom['TILE_CONFIG'])[6]==new_config[7]) & \
+            (check_left.empty or str(check_left['TILE_CONFIG'])[9]==new_config[10]):        
                 board = board.append(placement)
+                print(board)
+                
+                #Convert data to json
+                #DataFrame.to_json(path_or_buf=None, orient=None, date_format='epoch', double_precision=10, force_ascii=True, date_unit='ms', default_handler=None)
                 return(board)
             else:
                 error_msg = 'Tile features do not line up'
