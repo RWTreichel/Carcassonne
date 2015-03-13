@@ -12,7 +12,7 @@ tiles = start[1]
 
 #Start Loop
 turn = 1
-while turn < 3:
+while turn < 5:
     get_tile = carc.GetTile(tiles)
     tiles = get_tile[0]
     tile_inhand = get_tile[1]
@@ -25,6 +25,6 @@ while turn < 3:
     meeple = str(input('Enter meeple option: '))
     place = carc.PlaceTile(tiles, tile_inhand, board, place_x, place_y, rotate, player, meeple)
     board = place
-    print(place,'\n',board)
+    #print(place,'\n',board)
     
     turn = turn + 1
