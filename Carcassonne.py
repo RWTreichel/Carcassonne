@@ -1,75 +1,81 @@
 """
 Carcassonne Game
-Python Back-end
+Version 2 - Object oriented
 
 @author: Justin Divens
 """
 
-import numpy as np
 import pandas as pnd
+import numpy as np
+
+# ----------------------------------------------------------------------        
+#   Define Tile class
+# ---------------------------------------------------------------------- 
+class Tile:
+    """Tile class"""
+    def __init__(self, tile_id, tile_type, tile_config, tile_file):
+        self.id = tile_id
+        self.type = tile_type
+        self.config = tile_config
+        self.filename = tile_file
+        self.status = 1
+        
+    def rotate(self, deg):
+        if deg == '0':
+            pass
+        elif deg == '90':
+            new_config = self.config[9:12] + self.config[0:3] + self.config[3:6] + self.config[6:9]
+            self.config = new_config
+        elif deg == '180':
+            new_config = self.config[6:9] + self.config[9:12] + self.config[0:3] + self.config[3:6]
+            self.config = new_config
+        elif deg == '270':
+            new_config = self.config[3:6] + self.config[6:9] + self.config[9:12] + self.config[0:3]
+            self.config = new_config
+        else:
+            print('nah, can\'t rotate')
+        
+        return(str(self.config))
 
 # ----------------------------------------------------------------------        
 #   Initial game setup. Creates board object and tile object
-# ---------------------------------------------------------------------- 
+# ----------------------------------------------------------------------         
 def StartGame():
-    #Setup Board
-    start_append = pnd.DataFrame({'TILE_ID':'0','TILE_X':0,'TILE_Y':0,'TILE_CONFIG':'CCCFRFFFFFRF','PLAYER_ID':'START','MEEPLE':'0'}, index=[0])
-    board = pnd.DataFrame(columns=['TILE_ID','TILE_X','TILE_Y','TILE_CONFIG','PLAYER_ID','MEEPLE'])
-    board = board.append(start_append, ignore_index=True) #add starting tile
-    #Setup Tiles    
-    tiles = pnd.read_csv('tiles_start.csv',header=0) #import csv starter file
-    tiles.insert(3,'STATUS',1) #insert status column in tiles dataframe
-    status = np.array(tiles['STATUS']) #create status array from tiles
-    status[0] = 0 #set status=0 for starting tile
-    tiles['STATUS'] = status #update status column of tiles dataframe
-    #Convert data to json
-    #DataFrame.to_json(path_or_buf=None, orient=None, date_format='epoch', double_precision=10, force_ascii=True, date_unit='ms', default_handler=None)
-    return(board, tiles)
-
+    #read in tile setup. May include options for expansion/edits later
+    tiles_start = pnd.read_csv('tiles_start.csv',header=0)
+    #create list of tile objects
+    tile_pile = []  
+    for row in range(len(tiles_start['TILE_TYPE'])):
+        tile_pile.append(Tile(len(tile_pile),tiles_start['TILE_TYPE'][row],tiles_start['TILE_CONFIG'][row],tiles_start['TILE_FILENAME'][row]))
+    #checkout start tile
+    tile_pile[0].status=0        
+    #create board dataframe, which will hold tile objects
+    board = pnd.DataFrame({'TILE_ID':'0','TILE_X':0,'TILE_Y':0,'TILE_CONFIG':tile_pile[0].config,'PLAYER_ID':'START','MEEPLE':'0'}, index=[0])
+    #want to change ^^^board creation^^^ to be an append like during normal play
+    return(tile_pile, board)
+    
 # ----------------------------------------------------------------------        
 #   Choose random tile from pile and mark tile as used
 # ---------------------------------------------------------------------- 
-def GetTile(tiles):
-    tiles_current = tiles.query('STATUS == 1') #grab tiles with status=1
-    #tiles_current = tiles[tiles['STATUS']==1] #grab tiles with status=1
-    tile_inhand = np.random.choice(tiles_current.index) #choose random tile
-    status = np.array(tiles['STATUS']) #create status array from tiles
-    status[tile_inhand] = 0 #set status=0 for randomly chosen tile
-    tiles['STATUS'] = status #update status column of tiles dataframe   
-    #Convert data to json
-    #DataFrame.to_json(path_or_buf=None, orient=None, date_format='epoch', double_precision=10, force_ascii=True, date_unit='ms', default_handler=None)
-    return(tiles, tile_inhand)
-    
+def GetTile(tile_pile):
+    #create list of available tile objects
+    tiles_current = []
+    for row in range(len(tile_pile)):
+        if tile_pile[row].status == 1:
+            tiles_current.append(tile_pile[row])
+    #choose random tile
+    tile_choice = np.random.choice(len(tiles_current))
+    tile_inhand = tiles_current[tile_choice]
+    #update tile pile
+    for row in range(len(tile_pile)):
+        if tile_pile[row].id == tile_choice:
+            tile_pile[row].status=0
+    return(tile_inhand, tile_pile)
+            
 # ----------------------------------------------------------------------        
 #   Update game with player's turn choices
 # ----------------------------------------------------------------------     
-def PlaceTile(tiles, tile_inhand, board, tileX, tileY, rotate, player, meeple):
-    #Create dataframe object of current placement to be appended to board
-    placement = pnd.DataFrame(columns=['TILE_ID','TILE_X','TILE_Y','TILE_CONFIG','PLAYER_ID','MEEPLE'], index=[0])
-    placement['TILE_ID'] = tile_inhand
-    placement['TILE_X'] = tileX
-    placement['TILE_Y'] = tileY
-    placement['PLAYER_ID'] = player
-    placement['MEEPLE'] = meeple
-    #Rotate tile algorithm
-    if rotate == '0':
-        new_config = tiles['TILE_CONFIG'][tile_inhand]
-        placement['TILE_CONFIG'] = new_config
-    elif rotate == '90':
-        new_config = tiles['TILE_CONFIG'][tile_inhand][9:12] + tiles['TILE_CONFIG'][tile_inhand][0:3] +\
-        tiles['TILE_CONFIG'][tile_inhand][3:6] + tiles['TILE_CONFIG'][tile_inhand][6:9]
-        placement['TILE_CONFIG'] = new_config
-    elif rotate == '180':
-        new_config = tiles['TILE_CONFIG'][tile_inhand][6:9] + tiles['TILE_CONFIG'][tile_inhand][9:12] + \
-        tiles['TILE_CONFIG'][tile_inhand][0:3] + tiles['TILE_CONFIG'][tile_inhand][3:6]
-        placement['TILE_CONFIG'] = new_config
-    elif rotate == '270':
-        new_config = tiles['TILE_CONFIG'][tile_inhand][3:6] + tiles['TILE_CONFIG'][tile_inhand][6:9] + \
-        tiles['TILE_CONFIG'][tile_inhand][9:12] + tiles['TILE_CONFIG'][tile_inhand][0:3]
-        placement['TILE_CONFIG'] = new_config
-    else: 
-        error_msg = 'Invalid rotate'
-        return(error_msg)
+def PlaceTile(tile_inhand, board, tileX, tileY, rotation, player):
     #Check placement for invalid moves
     tileX = float(tileX)
     tileY = float(tileY)
@@ -78,33 +84,60 @@ def PlaceTile(tiles, tile_inhand, board, tileX, tileY, rotate, player, meeple):
     check_right = board.query('TILE_X == (@tileX+1) & TILE_Y == @tileY')
     check_bottom = board.query('TILE_X == @tileX & TILE_Y == (@tileY-1)')
     check_left = board.query('TILE_X == (@tileX-1) & TILE_Y == @tileY')
-    #"""
+    """
     print('center: ',str(check_center['TILE_CONFIG']))
     print('top: ',str(check_top['TILE_CONFIG']))
     print('right: ',str(check_right['TILE_CONFIG']))       #For troubleshooting
     print('bottom: ',str(check_bottom['TILE_CONFIG']))
     print('left: ',str(check_left['TILE_CONFIG']))
-    #"""
-    #Update board if all checks pass
-    if check_center.empty: #check if spot is already taken
+    """
+    #Check Tile
+    check1 = check_center.empty #check if spot is already taken
+    check2 =  not (check_top.empty and check_right.empty and check_bottom.empty and check_left.empty) #check if next to existing tile
+    check3 = (check_top.empty or str(check_top['TILE_CONFIG'])[12]==tile_inhand.rotate(rotation)[1]) & \
+            (check_right.empty or str(check_right['TILE_CONFIG'])[15]==tile_inhand.rotate(rotation)[4]) & \
+            (check_bottom.empty or str(check_bottom['TILE_CONFIG'])[6]==tile_inhand.rotate(rotation)[7]) & \
+            (check_left.empty or str(check_left['TILE_CONFIG'])[9]==tile_inhand.rotate(rotation)[10]) #Check features line up
+            
+    if all([check1, check2, check3]):
+        placement = pnd.DataFrame({'TILE_ID':tile_inhand.id, 'TILE_X':tileX, 'TILE_Y':tileY, 'TILE_CONFIG':tile_inhand.rotate(rotation), 'PLAYER_ID':player, 'MEEPLE':0}, index=[0])  
+        #print('placement \n',placement)              
+        newboard = board.append(placement, ignore_index=True)
+        err = ""
+        return(newboard,err)
+    else:
+        err1 = 'Spot empty: ' + str(check1)
+        err2 = 'Next to existing: ' + str(check2)
+        err3 = 'Features line up: ' + str(check3)
+        err = [err1, err2, err3]
+        return(board, err)
+        
+    """if check_center.empty: #check if spot is already taken
         if (check_top.empty and check_right.empty and check_bottom.empty and check_left.empty): #check if next to existing tile
             error_msg = 'Not next to existing tile'
-            return(error_msg, board)
+            #print(error_msg)
+            #board = board.to_json()
+            return(board, error_msg)
         else:
-            if (check_top.empty or str(check_top['TILE_CONFIG'])[12]==new_config[1]) & \
-            (check_right.empty or str(check_right['TILE_CONFIG'])[15]==new_config[4]) & \
-            (check_bottom.empty or str(check_bottom['TILE_CONFIG'])[6]==new_config[7]) & \
-            (check_left.empty or str(check_left['TILE_CONFIG'])[9]==new_config[10]):        
-                board = board.append(placement)
-                print(board)
-                
-                #Convert data to json
-                #DataFrame.to_json(path_or_buf=None, orient=None, date_format='epoch', double_precision=10, force_ascii=True, date_unit='ms', default_handler=None)
-                return(board)
+            if (check_top.empty or str(check_top['TILE_CONFIG'])[12]==tile_inhand.rotate(rotation)[1]) & \
+            (check_right.empty or str(check_right['TILE_CONFIG'])[15]==tile_inhand.rotate(rotation)[4]) & \
+            (check_bottom.empty or str(check_bottom['TILE_CONFIG'])[6]==tile_inhand.rotate(rotation)[7]) & \
+            (check_left.empty or str(check_left['TILE_CONFIG'])[9]==tile_inhand.rotate(rotation)[10]):        
+                placement = pnd.DataFrame()                
+                board = board.append(placement, ignore_index=True)
+                #print(board)                
+                #board = board.to_json()
+                error_msg = ''
+                return(board, error_msg)
             else:
                 error_msg = 'Tile features do not line up'
-                return(error_msg, board)
+                #print(error_msg)
+                #board = board.to_json()
+                return(board, error_msg)
     else:
         error_msg = 'Spot already taken'
-        return(error_msg, board)
-
+        #print(error_msg)
+        #board = board.to_json()
+        return(board, error_msg)
+"""
+    
